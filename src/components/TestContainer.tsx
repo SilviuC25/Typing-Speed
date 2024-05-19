@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import * as Styles from '../styles/testContainerStyles';
 import * as Constants from '../constants/gameConstants';
@@ -8,6 +8,9 @@ import useCalculateWordsPerLine from '../hooks/useCalculateWordsPerLine';
 import useResetInputOnLineChange from '../hooks/useResetInputOnLineChange';
 import useHandleKeyPress from '../hooks/useHandleKeyPress';
 import wordsData from '../data/words.json';
+import Timer from './Timer';
+import WordDisplay from './WordDisplay';
+import Result from './Result';
 
 function TestContainer() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,19 +27,8 @@ function TestContainer() {
 
   useResetInputOnLineChange(currentLine, setInput);
   useCalculateWordsPerLine(containerRef, setWordsPerLine);
-  const handleKeyPress = useHandleKeyPress(input, setInput, currentLine, 
-		generateLine, setCorrectWordsCount, setHasStarted);
-
-  useEffect(() => {
-    if (secondsLeft > 0 && hasStarted && !isTimeUp) {
-      const timerId = setTimeout(() => {
-        setSecondsLeft(secondsLeft - 1);
-      }, Constants.SECOND);
-      return () => clearTimeout(timerId);
-    } else if (secondsLeft === 0) {
-      setIsTimeUp(true);
-    }
-  }, [secondsLeft, hasStarted, isTimeUp]);
+  const handleKeyPress = useHandleKeyPress(input, setInput, currentLine,
+    generateLine, setCorrectWordsCount, setHasStarted);
 
   const handleRestart = () => {
     setIsTimeUp(false);
@@ -56,22 +48,16 @@ function TestContainer() {
       style={Styles.gameContainerStyle}
     >
       {isTimeUp ? (
-        <div>
-          <div style={Styles.endTestStyle} className="text-center text-primary mt-3">
-            {correctWordsCount} WPM
-          </div>
-          <button onClick={handleRestart} className="btn btn-primary mt-3">
-            Restart
-          </button>
-        </div>
+        <Result correctWordsCount={correctWordsCount} handleRestart={handleRestart} />
       ) : (
         <>
-          <div style={Styles.timerStyle} className='text-primary'>
-            {secondsLeft}
-          </div>
-          <div style={Styles.lineStyle} className='text-body-tertiary'>
-            <span dangerouslySetInnerHTML={{ __html: formattedWords.join(' ') }} />
-          </div>
+          <Timer 
+            secondsLeft={secondsLeft} 
+            setSecondsLeft={setSecondsLeft} 
+            hasStarted={hasStarted} 
+            setIsTimeUp={setIsTimeUp} 
+          />
+          <WordDisplay formattedWords={formattedWords} />
         </>
       )}
     </div>

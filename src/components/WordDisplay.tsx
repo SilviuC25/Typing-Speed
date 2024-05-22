@@ -29,27 +29,20 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
       }
       if (inputWords[index] === word) {
         return `<span class='text-success'>${word}</span>`;
-      } else {
-        const commonPart = word
-          .split('')
-          .map((character, characterIndex) => {
-            if (
-              inputWords[index] && 
-              inputWords[index][characterIndex] === character
-            ) {
-              return `<span class='text-success'>${character}</span>`;
-            } else if (
-              inputWords[index] &&
-              inputWords[index][characterIndex] !== undefined
-            ) {
-              return `<span class='text-danger'>${character}</span>`;
-            } else {
-              return character;
-            }
-          })          
-          .join('');
-        return `<span>${commonPart}</span>`;
       }
+      const commonPart = word
+        .split('')
+        .map((character, characterIndex) => {
+          if (inputWords[index]) {
+            if (inputWords[index][characterIndex] === character) {
+              return `<span class='text-success'>${character}</span>`;
+            }
+            return `<span class='text-danger'>${character}</span>`;
+          }
+          return character;
+        })          
+        .join('');
+      return `<span>${commonPart}</span>`;
     });
 
     setFormattedWords(formatted);

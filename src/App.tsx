@@ -2,9 +2,6 @@ import { useState, useRef } from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import * as Styles from './styles/testContainerStyles';
 import * as Constants from './constants/gameConstants';
-import useGenerateLine from './hooks/useGenerateLine';
-import useCalculateWordsPerLine from './hooks/useCalculateWordsPerLine';
-import wordsData from './data/words.json';
 import Timer from './components/Timer';
 import WordDisplay from './components/WordDisplay';
 import Result from './components/Result';
@@ -12,16 +9,11 @@ import Result from './components/Result';
 function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
-  const words = wordsData.words;
-  const [wordsPerLine, setWordsPerLine] = useState(0);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [correctWordsCount, setCorrectWordsCount] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(Constants.MINUTE);
   const [hasStarted, setHasStarted] = useState(false);
-
-  const [currentLine, generateLine] = useGenerateLine(words, wordsPerLine);
-  
-  useCalculateWordsPerLine(containerRef, setWordsPerLine);
+  const [currentLine, setCurrentLine] = useState('');
 
   const handleRestart = () => {
     setIsTimeUp(false);
@@ -29,7 +21,7 @@ function App() {
     setCorrectWordsCount(0);
     setSecondsLeft(Constants.MINUTE);
     setHasStarted(false);
-    generateLine();
+    setCurrentLine('');
   };
 
   return (
@@ -54,7 +46,7 @@ function App() {
               input={input}
               setInput={setInput}
               currentLine={currentLine}
-              generateLine={generateLine}
+              setCurrentLine={setCurrentLine}
               setCorrectWordsCount={setCorrectWordsCount}
               setHasStarted={setHasStarted}
             />

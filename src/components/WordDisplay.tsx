@@ -1,11 +1,13 @@
-import React, { KeyboardEvent, useEffect, useState } from 'react';
+import React, { KeyboardEvent, useEffect, useState, useRef } from 'react';
 import * as Styles from '../styles/testContainerStyles'; 
+import wordsData from '../data/words.json';
+import * as Constants from '../constants/gameConstants';
 
 interface WordDisplayProps {
   input: string;
   setInput: React.Dispatch<React.SetStateAction<string>>;
   currentLine: string;
-  generateLine: () => void;
+  setCurrentLine: React.Dispatch<React.SetStateAction<string>>;
   setCorrectWordsCount: React.Dispatch<React.SetStateAction<number>>;
   setHasStarted: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -14,11 +16,14 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
   input,
   setInput,
   currentLine,
-  generateLine,
+  setCurrentLine,
   setCorrectWordsCount,
   setHasStarted
 }) => {
   const [formattedWords, setFormattedWords] = useState<string[]>([]);
+  const [wordsPerLine, setWordsPerLine] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const words = wordsData.words;
 
   useEffect(() => {
     const words = currentLine.split(' ');
@@ -27,22 +32,15 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
       if (inputWords[index] === undefined) {
         return `<span>${word}</span>`;
       }
-      if (inputWords[index] === word) {
-        return `<span class='text-success'>${word}</span>`;
-      }
-      const commonPart = word
-        .split('')
-        .map((character, characterIndex) => {
-          if (inputWords[index]) {
-            if (inputWords[index][characterIndex] === character) {
-              return `<span class='text-success'>${character}</span>`;
-            }
-            return `<span class='text-danger'>${character}</span>`;
-          }
-          return character;
-        })          
-        .join('');
-      return `<span>${commonPart}</span>`;
+      const chars = word.split('').map((char, charIndex) => {
+        if (inputWords[index] && inputWords[index][charIndex] === char) {
+          return `<span class='text-success'>${char}</span>`;
+        } else if (inputWords[index] && inputWords[index][charIndex]) {
+          return `<span class='text-danger'>${char}</span>`;
+        }
+        return char;
+      }).join('');
+      return `<span>${chars}</span>`;
     });
 
     setFormattedWords(formatted);
@@ -51,6 +49,42 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
   useEffect(() => {
     setInput('');
   }, [currentLine, setInput]);
+
+  useEffect(() => {
+    const calculateWordsPerLine = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        const wordsPerLine = Math.floor(
+          containerWidth / Constants.AVERAGE_WORD_WIDTH
+        );          
+        setWordsPerLine(wordsPerLine);
+      }
+    };
+
+    calculateWordsPerLine();
+
+    window.addEventListener('resize', calculateWordsPerLine);
+    return () => {
+      window.removeEventListener('resize', calculateWordsPerLine);
+    };
+  }, [containerRef, setWordsPerLine]);
+
+  const handleGenerateLine = () => {
+    const randomWords: string[] = [];
+
+    for (let i = 0; i < wordsPerLine; ++i) {
+      const randomIndex = Math.floor(Math.random() * words.length);
+      randomWords.push(words[randomIndex]);
+    }
+
+    setCurrentLine(randomWords.join(' '));
+  };
+
+  useEffect(() => {
+    if (words.length > 0) {
+      handleGenerateLine();
+    }
+  }, [words, wordsPerLine]);
 
   const handleKeyPress = (event: KeyboardEvent<HTMLDivElement>) => {
     setHasStarted(true);
@@ -70,7 +104,7 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
         }
 
         if (inputWords.length === wordsInLine.length) {
-          generateLine();
+          handleGenerateLine();
           setInput('');
         } else {
           setInput(prevInput => prevInput + ' ');
@@ -85,6 +119,7 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
 
   return (
     <div 
+      ref={containerRef}
       onKeyDown={handleKeyPress} 
       tabIndex={0} 
       className='text-body-tertiary'

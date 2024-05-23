@@ -33,10 +33,13 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
         return `<span>${word}</span>`;
       }
       const chars = word.split('').map((char, charIndex) => {
-        if (inputWords[index] && inputWords[index][charIndex] === char) {
-          return `<span class='text-success'>${char}</span>`;
-        } else if (inputWords[index] && inputWords[index][charIndex]) {
-          return `<span class='text-danger'>${char}</span>`;
+        if (inputWords[index]) {
+          if (inputWords[index][charIndex] === char) {
+            return `<span class='text-success'>${char}</span>`;
+          }
+          if (inputWords[index][charIndex]) {
+            return `<span class='text-danger'>${char}</span>`;
+          }
         }
         return char;
       }).join('');
